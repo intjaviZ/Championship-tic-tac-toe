@@ -7,6 +7,9 @@ import androidx.compose.runtime.Composable
 @Composable
 fun SquareButton(simbolo : String, onClick : () -> Unit) {
     Button (onClick = onClick) {
-        Text(text = simbolo)
+        Text(
+            text = simbolo,
+            color = androidx.compose.ui.graphics.Color.Black
+        )
     }
 }

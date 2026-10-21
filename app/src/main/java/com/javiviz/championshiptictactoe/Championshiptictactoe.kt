@@ -5,9 +5,7 @@ import com.javiviz.championshiptictactoe.features.match.di.MatchModule
 import com.javiviz.championshiptictactoe.features.players.di.PlayersModule
 
 class Championshiptictactoe : Application() {
-    val playersModule : PlayersModule by lazy {
-        PlayersModule()
-    }
+    val playersModule by lazy { PlayersModule(applicationContext) }
     val matchModule by lazy {
         MatchModule(playersModule.repository)
     }

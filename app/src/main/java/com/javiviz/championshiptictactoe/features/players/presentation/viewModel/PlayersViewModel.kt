@@ -1,6 +1,7 @@
 package com.javiviz.championshiptictactoe.features.players.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.javiviz.championshiptictactoe.app.enums.SymbolColors
 import com.javiviz.championshiptictactoe.features.players.data.model.Player
 import com.javiviz.championshiptictactoe.features.players.data.model.PlayerStatistics
@@ -10,7 +11,10 @@ import com.javiviz.championshiptictactoe.features.players.presentation.screens.P
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class PlayersViewModel (
     private val repository: PlayerRepository
@@ -25,37 +29,35 @@ class PlayersViewModel (
     }
 
     fun getAllPlayers() {
-        val players = repository.getAllPlayers()
-        _playersState.update { it.copy(players = players) }
+        repository.observePlayers()
+            .onEach { list -> _playersState.update { it.copy(players = list) } }
+            .launchIn(viewModelScope)
     }
 
-    fun getPlayerById(playerId: String) {
+    suspend fun getPlayerById(playerId: String) {
         _playersState.update { it.copy(player = repository.getPlayerById(playerId)) }
     }
 
     fun createPlayer() {
-        if (_createPlayerState.value.apodo.isBlank()) return
-        val newPlayer : Player = Player(
-            id = repository.getIdPlayer(),
-            apodo = _createPlayerState.value.apodo,
-            colorPreferido = _createPlayerState.value.color,
-            statistics = PlayerStatistics(
-                totalMatches = 0,
-                wins = 0,
-                losses = 0,
-                draws = 0
-            )
-        )
-        repository.createPlayer(newPlayer)
-        println("Repository: ${repository.getAllPlayers()}")
-        println("ViewModel: ${playersState.value.players}")
+        val state = _createPlayerState.value
+        if (state.apodo.isBlank()) return
+        viewModelScope.launch {
+            repository.createPlayer(state.apodo, state.color)
+        }
     }
+
     fun updatePlayer(player: Player) {
         if (player.apodo.isBlank()) return
-        repository.updatePlayer(player)
+        viewModelScope.launch {
+            repository.updatePlayer(player)
+        }
+
     }
+
     fun deletePlayer(playerId: String) {
-        repository.deletePlayer(playerId)
+        viewModelScope.launch {
+            repository.deletePlayer(playerId)
+        }
     }
 
     fun setApodo(apodo : String) {

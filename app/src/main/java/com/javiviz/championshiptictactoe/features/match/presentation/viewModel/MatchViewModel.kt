@@ -1,7 +1,9 @@
 package com.javiviz.championshiptictactoe.features.match.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.javiviz.championshiptictactoe.app.enums.EstadoJuego
+import com.javiviz.championshiptictactoe.app.enums.ResultadoPartida
 import com.javiviz.championshiptictactoe.app.enums.Simbolos
 import com.javiviz.championshiptictactoe.app.utils.lineasGanadoras
 import com.javiviz.championshiptictactoe.features.match.data.dataSource.ActiveMatchStore
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.Array
 
 class MatchViewModel(
@@ -77,16 +80,22 @@ class MatchViewModel(
         if (resultado != null) {
             when(resultado) {
                 Simbolos.X -> {
-                    repository.updateStatistics(matchState.value.jugador1!!.id, "win")
-                    repository.updateStatistics(matchState.value.jugador2!!.id, "loss")
+                    viewModelScope.launch {
+                        repository.updateStatistics(matchState.value.jugador1!!.id, ResultadoPartida.WIN)
+                        repository.updateStatistics(matchState.value.jugador2!!.id, ResultadoPartida.LOSS)
+                    }
                 }
                 Simbolos.O -> {
-                    repository.updateStatistics(matchState.value.jugador1!!.id, "loss")
-                    repository.updateStatistics(matchState.value.jugador2!!.id, "win")
+                    viewModelScope.launch {
+                        repository.updateStatistics(matchState.value.jugador1!!.id, ResultadoPartida.LOSS)
+                        repository.updateStatistics(matchState.value.jugador2!!.id, ResultadoPartida.WIN)
+                    }
                 }
                 Simbolos.VACIA -> {
-                    repository.updateStatistics(matchState.value.jugador1!!.id, "draw")
-                    repository.updateStatistics(matchState.value.jugador2!!.id, "draw")
+                    viewModelScope.launch {
+                        repository.updateStatistics(matchState.value.jugador1!!.id, ResultadoPartida.DRAW)
+                        repository.updateStatistics(matchState.value.jugador2!!.id, ResultadoPartida.DRAW)
+                    }
                 }
 
             }

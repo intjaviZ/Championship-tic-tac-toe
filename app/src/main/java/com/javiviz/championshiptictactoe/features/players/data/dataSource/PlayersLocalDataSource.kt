@@ -55,7 +55,7 @@ class PlayersLocalDataSource {
         return (maxId + 1).toString()
     }
 
-    fun updateStatistics(playerId: String, state: String) {
+    /*fun updateStatistics(playerId: String, state: String) {
         val index = players.indexOfFirst { it.id == playerId }
         players[index].statistics.totalMatches++
 
@@ -64,5 +64,5 @@ class PlayersLocalDataSource {
             "draw" -> players[index].statistics.draws++
             "loss" -> players[index].statistics.losses++
         }
-    }
+    }*/
 }

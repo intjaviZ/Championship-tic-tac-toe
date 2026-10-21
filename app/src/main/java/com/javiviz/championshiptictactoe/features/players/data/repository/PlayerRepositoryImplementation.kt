@@ -1,36 +1,35 @@
 package com.javiviz.championshiptictactoe.features.players.data.repository
 
-import com.javiviz.championshiptictactoe.features.players.data.dataSource.PlayersLocalDataSource
+import com.javiviz.championshiptictactoe.app.enums.ResultadoPartida
+import com.javiviz.championshiptictactoe.app.enums.SymbolColors
+import com.javiviz.championshiptictactoe.features.players.data.dataSource.PlayersDataStoreDataSource
 import com.javiviz.championshiptictactoe.features.players.data.model.Player
+import kotlinx.coroutines.flow.Flow
 
 class PlayerRepositoryImplementation(
-    private val dataSource: PlayersLocalDataSource
+    private val dataSource: PlayersDataStoreDataSource
 ) : PlayerRepository {
-    override fun getAllPlayers(): List<Player> {
-        return dataSource.getAllPlayers()
+
+    override fun observePlayers(): Flow<List<Player>> {
+        return dataSource.players
+    }
+    override suspend fun getPlayerById(id: String): Player? {
+        return dataSource.getPlayerById(id)
     }
 
-    override fun getPlayerById(playerId: String): Player? {
-        return dataSource.getPlayerById(playerId)
+    override suspend fun createPlayer(apodo: String, color: SymbolColors): Player {
+        return dataSource.createPlayer(apodo, color)
     }
 
-    override fun createPlayer(player: Player): Player {
-        return dataSource.createPlayer(player)
-    }
-
-    override fun updatePlayer(player: Player): Player {
+    override suspend fun updatePlayer(player: Player) {
         return dataSource.updatePlayer(player)
     }
 
-    override fun deletePlayer(playerId: String) {
-        return dataSource.deletePlayer(playerId)
+    override suspend fun deletePlayer(id: String) {
+        return dataSource.deletePlayer(id)
     }
 
-    override fun getIdPlayer(): String {
-        return dataSource.createId()
-    }
-
-    override fun updateStatistics(playerId: String, state: String) {
-        return dataSource.updateStatistics(playerId, state)
+    override suspend fun updateStatistics(id: String, result: ResultadoPartida) {
+        return dataSource.updateStatistics(id, result)
     }
 }

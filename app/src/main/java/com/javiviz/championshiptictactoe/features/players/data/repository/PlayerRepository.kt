@@ -1,15 +1,15 @@
 package com.javiviz.championshiptictactoe.features.players.data.repository
 
+import com.javiviz.championshiptictactoe.app.enums.ResultadoPartida
+import com.javiviz.championshiptictactoe.app.enums.SymbolColors
 import com.javiviz.championshiptictactoe.features.players.data.model.Player
+import kotlinx.coroutines.flow.Flow
 
 interface PlayerRepository {
-    fun getAllPlayers(): List<Player>
-    fun getPlayerById(playerId: String): Player?
-    fun createPlayer(player: Player) : Player
-    fun updatePlayer(player: Player) : Player
-    fun deletePlayer(playerId: String)
-
-    fun getIdPlayer() : String
-
-    fun updateStatistics(playerId: String, state: String)
+    fun observePlayers(): Flow<List<Player>>
+    suspend fun getPlayerById(id: String): Player?
+    suspend fun createPlayer(apodo: String, color: SymbolColors): Player
+    suspend fun updatePlayer(player: Player)
+    suspend fun deletePlayer(id: String)
+    suspend fun updateStatistics(id: String, result: ResultadoPartida)
 }

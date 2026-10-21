@@ -136,8 +136,8 @@ fun MainScreen(
                         viewModel.onSectionSelected(Sections.MATCH)
                     })
                     Sections.NEW_PLAYER -> CreatePlayerScreen()
+                    Sections.MATCH -> MatchScreen(matchViewModel)
                     Sections.STATISTICS -> StatisticsScreen()
-                    else -> {Text("No hay contenido para esta sección")}
                 }
             }
         }

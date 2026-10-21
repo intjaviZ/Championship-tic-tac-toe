@@ -30,4 +30,7 @@ class PlayerRepositoryImplementation(
         return dataSource.createId()
     }
 
+    override fun updateStatistics(playerId: String, state: String) {
+        return dataSource.updateStatistics(playerId, state)
+    }
 }

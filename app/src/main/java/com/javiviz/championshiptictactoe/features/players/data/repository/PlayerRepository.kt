@@ -10,4 +10,6 @@ interface PlayerRepository {
     fun deletePlayer(playerId: String)
 
     fun getIdPlayer() : String
+
+    fun updateStatistics(playerId: String, state: String)
 }

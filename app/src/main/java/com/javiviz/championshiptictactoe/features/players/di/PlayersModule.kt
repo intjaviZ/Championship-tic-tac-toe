@@ -10,7 +10,7 @@ class PlayersModule {
         PlayersLocalDataSource()
     }
 
-    private val repository: PlayerRepository by lazy {
+    val repository: PlayerRepository by lazy {
         PlayerRepositoryImplementation(localDataSource)
     }
 

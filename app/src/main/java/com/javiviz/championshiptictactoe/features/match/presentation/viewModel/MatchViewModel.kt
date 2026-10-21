@@ -4,14 +4,20 @@ import androidx.lifecycle.ViewModel
 import com.javiviz.championshiptictactoe.app.enums.EstadoJuego
 import com.javiviz.championshiptictactoe.app.enums.Simbolos
 import com.javiviz.championshiptictactoe.app.utils.lineasGanadoras
+import com.javiviz.championshiptictactoe.features.match.data.dataSource.ActiveMatchStore
 import com.javiviz.championshiptictactoe.features.match.presentation.screens.MatchUIState
+import com.javiviz.championshiptictactoe.features.players.data.model.Player
+import com.javiviz.championshiptictactoe.features.players.data.repository.PlayerRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.Array
 
-class MatchViewModel : ViewModel() {
+class MatchViewModel(
+    private val repository: PlayerRepository,
+    private val activeMatchStore: ActiveMatchStore
+) : ViewModel() {
     private val _matchState = MutableStateFlow(MatchUIState())
     val matchState: StateFlow<MatchUIState> = _matchState.asStateFlow()
 
@@ -48,6 +54,9 @@ class MatchViewModel : ViewModel() {
         }
     }
 
+    fun preparePlayers(player1 : Player, player2 : Player) {
+        _matchState.update { it.copy(jugador1 = player1, jugador2 = player2) }
+    }
     fun startGame() {
         _matchState.update { it.copy(estadoPartida = EstadoJuego.JUGANDO) }
 
@@ -66,6 +75,21 @@ class MatchViewModel : ViewModel() {
         }
 
         if (resultado != null) {
+            when(resultado) {
+                Simbolos.X -> {
+                    repository.updateStatistics(matchState.value.jugador1!!.id, "win")
+                    repository.updateStatistics(matchState.value.jugador2!!.id, "loss")
+                }
+                Simbolos.O -> {
+                    repository.updateStatistics(matchState.value.jugador1!!.id, "loss")
+                    repository.updateStatistics(matchState.value.jugador2!!.id, "win")
+                }
+                Simbolos.VACIA -> {
+                    repository.updateStatistics(matchState.value.jugador1!!.id, "draw")
+                    repository.updateStatistics(matchState.value.jugador2!!.id, "draw")
+                }
+
+            }
             _matchState.update {
                 it.copy(estadoPartida = EstadoJuego.FINALIZADO, ganador = resultado)
             }
@@ -82,5 +106,10 @@ class MatchViewModel : ViewModel() {
             if (linea.all { (x, y) -> tablero[x][y] == simbolo }) return simbolo
         }
         return null
+    }
+
+    fun turnMatch() : String? {
+        val matchState = _matchState.value
+        return if (matchState.turnoX) matchState.jugador1?.apodo else matchState.jugador2?.apodo
     }
 }

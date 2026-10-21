@@ -9,7 +9,11 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.javiviz.championshiptictactoe.features.main.presentation.MainViewModel
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -35,11 +39,13 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun ChampionshipTicTacToeTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    viewModel : MainViewModel = viewModel(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val darkTheme by viewModel.isDarkTheme.collectAsStateWithLifecycle()
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

@@ -10,16 +10,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.javiviz.championshiptictactoe.app.enums.Simbolos
 import com.javiviz.championshiptictactoe.features.match.presentation.components.GatoBoard
 import com.javiviz.championshiptictactoe.features.match.presentation.viewModel.MatchViewModel
 
 @Composable
-fun MatchScreen(matchViewModel : MatchViewModel = viewModel()) {
+fun MatchScreen(matchViewModel : MatchViewModel) {
     val matchState by matchViewModel.matchState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.padding(32.dp)) {
+        Text("Turno: ${matchViewModel.turnMatch()}")
         GatoBoard(
             matchState.tablero,
             onClick = { x, y -> matchViewModel.takeTurn(x, y) }

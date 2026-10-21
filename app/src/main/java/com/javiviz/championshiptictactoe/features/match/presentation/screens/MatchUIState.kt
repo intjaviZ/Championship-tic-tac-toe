@@ -2,12 +2,15 @@ package com.javiviz.championshiptictactoe.features.match.presentation.screens
 
 import com.javiviz.championshiptictactoe.app.enums.EstadoJuego
 import com.javiviz.championshiptictactoe.app.enums.Simbolos
+import com.javiviz.championshiptictactoe.features.players.data.model.Player
 
 data class MatchUIState(
     val tablero : Array<Array<Simbolos>> = Array(3) { Array(3){ Simbolos.VACIA } },
     val estadoPartida : EstadoJuego = EstadoJuego.INICIAR,
     val turnoX : Boolean = true,
-    val ganador : Simbolos? = null
+    val ganador : Simbolos? = null,
+    val jugador1 : Player? = null,
+    val jugador2 : Player? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -18,6 +21,9 @@ data class MatchUIState(
         if (!tablero.contentDeepEquals(other.tablero)) return false
         if (estadoPartida != other.estadoPartida) return false
         if (turnoX != other.turnoX) return false
+        if (ganador != other.ganador) return false
+        if (jugador1 != other.jugador1) return false
+        if (jugador2 != other.jugador2) return false
 
         return true
     }
@@ -26,6 +32,9 @@ data class MatchUIState(
         var result = tablero.contentDeepHashCode()
         result = 31 * result + estadoPartida.hashCode()
         result = 31 * result + turnoX.hashCode()
+        result = 31 * result + (ganador?.hashCode() ?: 0)
+        result = 31 * result + (jugador1?.hashCode() ?: 0)
+        result = 31 * result + (jugador2?.hashCode() ?: 0)
         return result
     }
 }

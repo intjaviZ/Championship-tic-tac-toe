@@ -22,7 +22,6 @@ fun CreatePlayerScreen(
         factory = (LocalContext.current.applicationContext as Championshiptictactoe).playersModule.factoryPlayers
     )
 ) {
-    /*val playersUIState by viewModel.playersState.collectAsStateWithLifecycle()*/
     val createPlayerUIState by viewModel.createPlayerUIState.collectAsStateWithLifecycle()
 
     Column(
@@ -40,5 +39,4 @@ fun CreatePlayerScreen(
             Text(text = "Crear jugador")
         }
     }
-
 }

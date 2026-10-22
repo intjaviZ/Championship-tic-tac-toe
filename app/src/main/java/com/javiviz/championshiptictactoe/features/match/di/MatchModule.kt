@@ -7,9 +7,9 @@ import com.javiviz.championshiptictactoe.features.players.data.repository.Player
 class MatchModule(
     private val playerRepository: PlayerRepository
 ) {
-    val activeMatchStore: ActiveMatchStore by lazy { ActiveMatchStore() }
+
 
     val matchFactory: MatchViewModelFactory by lazy {
-        MatchViewModelFactory(playerRepository, activeMatchStore)
+        MatchViewModelFactory(playerRepository)
     }
 }

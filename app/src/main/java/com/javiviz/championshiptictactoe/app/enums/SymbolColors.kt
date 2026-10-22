@@ -1,5 +1,7 @@
 package com.javiviz.championshiptictactoe.app.enums
 
+import androidx.compose.ui.graphics.Color
+
 enum class SymbolColors(val hexColor: String, val label : String) {
     RED  ("E53935", "Rojo"),
     BLUE ("1E88E5", "Azul"),
@@ -8,5 +10,8 @@ enum class SymbolColors(val hexColor: String, val label : String) {
     PURPLE ("8E24AA", "Morado"),
     PINK ("D81B60", "Rosa"),
     ORANGE ("FB8C00", "Naranja"),
-    CYAN ("00ACC1", "Cyan")
+    CYAN ("00ACC1", "Cyan");
+
+    val composeColor: Color
+        get() = Color(hexColor.toLong(radix = 16) or 0x00000000FF000000L)
 }

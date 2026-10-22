@@ -7,9 +7,8 @@ import com.javiviz.championshiptictactoe.features.players.data.repository.Player
 
 class MatchViewModelFactory(
     private val playerRepository: PlayerRepository,
-    private val activeMatchStore: ActiveMatchStore
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
-        MatchViewModel(playerRepository, activeMatchStore) as T
+        MatchViewModel(playerRepository) as T
 }

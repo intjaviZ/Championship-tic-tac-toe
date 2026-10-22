@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.javiviz.championshiptictactoe.app.enums.EstadoJuego
 import com.javiviz.championshiptictactoe.app.enums.ResultadoPartida
 import com.javiviz.championshiptictactoe.app.enums.Simbolos
+import com.javiviz.championshiptictactoe.app.enums.SymbolColors
 import com.javiviz.championshiptictactoe.app.utils.lineasGanadoras
 import com.javiviz.championshiptictactoe.features.match.data.dataSource.ActiveMatchStore
 import com.javiviz.championshiptictactoe.features.match.presentation.screens.MatchUIState
@@ -19,106 +20,87 @@ import kotlin.Array
 
 class MatchViewModel(
     private val repository: PlayerRepository,
-    private val activeMatchStore: ActiveMatchStore
 ) : ViewModel() {
     private val _matchState = MutableStateFlow(MatchUIState())
     val matchState: StateFlow<MatchUIState> = _matchState.asStateFlow()
 
-    fun takeTurn(x : Int, y : Int) {
-        val currentState = _matchState.value
+    fun takeTurn(x: Int, y: Int) {
+        val s = _matchState.value
+        if (s.estadoPartida != EstadoJuego.JUGANDO) return
+        if (s.tablero[x][y] != Simbolos.VACIA) return
 
-        if(currentState.estadoPartida != EstadoJuego.JUGANDO) return
-        if (currentState.tablero[x][y] != Simbolos.VACIA) return
+        val simbolo = if (s.turnoJugador1) Simbolos.O else Simbolos.X
+        val tablero = s.tablero.map { it.clone() }.toTypedArray()
+        tablero[x][y] = simbolo
 
-        val nuevoSimbolo = setTurn()
-
-        _matchState.update { state ->
-            val nuevoTablero = state.tablero.map { it.clone() }.toTypedArray()
-            nuevoTablero[x][y] = nuevoSimbolo
-
-            state.copy(tablero = nuevoTablero)
+        val linea = findWinningLine(tablero)
+        val resultado = when {
+            linea != null -> simbolo
+            tablero.all { fila -> fila.none { it == Simbolos.VACIA } } -> Simbolos.VACIA
+            else -> null
         }
-        checkGameState()
-    }
 
-    fun setTurn() : Simbolos {
-        _matchState.update { it.copy(turnoX = !it.turnoX) }
-        return if (!matchState.value.turnoX) Simbolos.X else Simbolos.O
+        _matchState.update {
+            it.copy(
+                tablero = tablero,
+                turnoJugador1 = !it.turnoJugador1,
+                estadoPartida = if (resultado != null) EstadoJuego.FINALIZADO else EstadoJuego.JUGANDO,
+                ganador = resultado,
+                lineaGanadora = linea.orEmpty()
+            )
+        }
+        resultado?.let { saveResult(it, s.jugador1, s.jugador2) }
     }
 
     fun resetGame() {
         _matchState.update {
             it.copy(
                 tablero = Array(3) { Array(3) { Simbolos.VACIA } },
-                turnoX = true,
+                turnoJugador1 = true,
                 estadoPartida = EstadoJuego.JUGANDO,
-                ganador = null
+                ganador = null,
+                lineaGanadora = emptyList(),
+                ronda = if (it.estadoPartida == EstadoJuego.FINALIZADO) it.ronda + 1 else it.ronda
             )
         }
     }
+    private fun saveResult(resultado: Simbolos, j1: Player?, j2: Player?) {
+        if (j1 == null || j2 == null) return
+        val (r1, r2) = when (resultado) {
+            Simbolos.O -> ResultadoPartida.WIN to ResultadoPartida.LOSS
+            Simbolos.X -> ResultadoPartida.LOSS to ResultadoPartida.WIN
+            Simbolos.VACIA -> ResultadoPartida.DRAW to ResultadoPartida.DRAW
+        }
+        viewModelScope.launch {
+            repository.updateStatistics(j1.id, r1)
+            repository.updateStatistics(j2.id, r2)
+        }
+    }
 
-    fun preparePlayers(player1 : Player, player2 : Player) {
-        _matchState.update { it.copy(jugador1 = player1, jugador2 = player2) }
+    private fun findWinningLine(tablero: Array<Array<Simbolos>>): List<Pair<Int, Int>>? =
+        lineasGanadoras.firstOrNull { linea ->
+            val (x0, y0) = linea[0]
+            val s = tablero[x0][y0]
+            s != Simbolos.VACIA && linea.all { (x, y) -> tablero[x][y] == s }
+        }
+
+    fun preparePlayers(player1: Player, player2: Player) {
+        val repetido = player1.colorPreferido == player2.colorPreferido
+        val colorJ2 = if (repetido) {
+            SymbolColors.entries.filter { it != player1.colorPreferido }.random()
+        } else player2.colorPreferido
+
+        _matchState.value = MatchUIState(
+            estadoPartida = EstadoJuego.JUGANDO,
+            jugador1 = player1,
+            jugador2 = player2,
+            colorJ1 = player1.colorPreferido,
+            colorJ2 = colorJ2,
+            colorJ2AlAzar = repetido
+        )
     }
     fun startGame() {
         _matchState.update { it.copy(estadoPartida = EstadoJuego.JUGANDO) }
 
-    }
-
-    fun checkGameState(): Simbolos? {
-        val tablero = _matchState.value.tablero
-
-        val ganador = findWinner(tablero)
-        val tableroLleno = tablero.all { fila -> fila.none { it == Simbolos.VACIA } }
-
-        val resultado = when {
-            ganador != null -> ganador
-            tableroLleno -> Simbolos.VACIA
-            else -> null
-        }
-
-        if (resultado != null) {
-            when(resultado) {
-                Simbolos.X -> {
-                    viewModelScope.launch {
-                        repository.updateStatistics(matchState.value.jugador1!!.id, ResultadoPartida.WIN)
-                        repository.updateStatistics(matchState.value.jugador2!!.id, ResultadoPartida.LOSS)
-                    }
-                }
-                Simbolos.O -> {
-                    viewModelScope.launch {
-                        repository.updateStatistics(matchState.value.jugador1!!.id, ResultadoPartida.LOSS)
-                        repository.updateStatistics(matchState.value.jugador2!!.id, ResultadoPartida.WIN)
-                    }
-                }
-                Simbolos.VACIA -> {
-                    viewModelScope.launch {
-                        repository.updateStatistics(matchState.value.jugador1!!.id, ResultadoPartida.DRAW)
-                        repository.updateStatistics(matchState.value.jugador2!!.id, ResultadoPartida.DRAW)
-                    }
-                }
-
-            }
-            _matchState.update {
-                it.copy(estadoPartida = EstadoJuego.FINALIZADO, ganador = resultado)
-            }
-        }
-        return resultado
-    }
-
-    private fun findWinner(tablero: Array<Array<Simbolos>>): Simbolos? {
-        for (linea in lineasGanadoras) {
-            val (x0, y0) = linea[0]
-            val simbolo = tablero[x0][y0]
-            if (simbolo == Simbolos.VACIA) continue
-
-            if (linea.all { (x, y) -> tablero[x][y] == simbolo }) return simbolo
-        }
-        return null
-    }
-
-    fun turnMatch() : String? {
-        val matchState = _matchState.value
-        return if (matchState.turnoX) matchState.jugador1?.apodo else matchState.jugador2?.apodo
     }
 }

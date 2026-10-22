@@ -57,7 +57,6 @@ fun MainScreen(
     val currentSection by viewModel.currentSection.collectAsStateWithLifecycle()
     val isDark by viewModel.isDarkTheme.collectAsStateWithLifecycle()
 
-    val scrollState = rememberScrollState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
@@ -74,15 +73,18 @@ fun MainScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Sections.entries.forEach { section ->
-                    NavigationDrawerItem(
-                        label = { Text(section.label) },
-                        selected = currentSection == section,
-                        onClick = {
-                            viewModel.onSectionSelected(section)
-                            coroutineScope.launch { drawerState.close() }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
+                    if (section != Sections.MATCH) {
+                        NavigationDrawerItem(
+                            label = { Text(section.label) },
+                            selected = currentSection == section,
+                            onClick = {
+                                viewModel.onSectionSelected(section)
+                                coroutineScope.launch { drawerState.close() }
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
+
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -124,8 +126,7 @@ fun MainScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .imePadding()
-                    .verticalScroll(scrollState),
+                    .imePadding(),
 
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -135,8 +136,13 @@ fun MainScreen(
                         matchViewModel.preparePlayers(p1, p2)
                         viewModel.onSectionSelected(Sections.MATCH)
                     })
-                    Sections.NEW_PLAYER -> CreatePlayerScreen()
-                    Sections.MATCH -> MatchScreen(matchViewModel)
+                    Sections.NEW_PLAYER -> CreatePlayerScreen(
+                        onClose = { viewModel.onSectionSelected(Sections.HOME) }
+                    )
+                    Sections.MATCH -> MatchScreen(
+                        matchViewModel,
+                        onExit = { viewModel.onSectionSelected(Sections.HOME) }
+                    )
                     Sections.STATISTICS -> StatisticsScreen()
                 }
             }

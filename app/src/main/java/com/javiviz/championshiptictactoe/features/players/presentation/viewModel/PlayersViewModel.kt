@@ -33,6 +33,9 @@ class PlayersViewModel (
             .onEach { list -> _playersState.update { it.copy(players = list) } }
             .launchIn(viewModelScope)
     }
+    fun getSortedPlayers() {
+
+    }
 
     suspend fun getPlayerById(playerId: String) {
         _playersState.update { it.copy(player = repository.getPlayerById(playerId)) }
